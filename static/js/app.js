@@ -106,7 +106,7 @@ async function buildCharts(sample) {
     marker: {
       size: plotData['sample_values'],
       color: plotData['otu_ids'],
-      colorscale: "YIGnBu",
+      colorscale: "RdBu",
     }
   }];
 
@@ -119,19 +119,45 @@ async function buildCharts(sample) {
 
   Plotly.newPlot("bubble", bubbleData, bubbleLayout);
 
+  function sortIndex(dataArray){
+    let len = dataArray.length;
+    let indices = new Array(len);
+    for (let i = 0; i < len; ++i){
+      indices[i] = i;
+    }
+    indices.sort(function (a, b) {
+      return dataArray[a] < dataArray[b] ? 1 : dataArray[a] > dataArray[b] ? -1 : 0;
+    }
+    );
+    return indices;
+  }
+
+  function arrayReorder(dataArray, indices){
+    let reorderedArray = [];
+    let len = dataArray.length;
+    for (let i = 0; i < len; ++i){
+      reorderedArray[i] = dataArray[indices[i]];
+    }
+    return reorderedArray;
+  }
+
     // @TODO: Build a Pie Chart
     // HINT: You will need to use slice() to grab the top 10 sample_values,
     // otu_ids, and labels (10 each).
+
+    // Sort data first
+    let indices = sortIndex(plotData['sample_values']);
+    let sortedSV = arrayReorder(plotData['sample_values'], indices);
+    let sortedOI = arrayReorder(plotData['otu_ids'], indices);
+    let sortedOL = arrayReorder(plotData['otu_labels'], indices);
+
   let pieData = [{
-    values: plotData['sample_values'].slice(0, 10),
-    labels: plotData['otu_ids'].slice(0, 10),
-    hovertext: plotData['otu_labels'].slice(0, 10),
+    values: sortedSV.slice(0, 10),
+    labels: sortedOI.slice(0, 10),
+    hovertext: sortedOL.slice(0, 10),
     hoverinfo: 'hovertext',
     hole: .4,
-    type: 'pie',
-    marker: {
-      colors: ['#add8e6','#b7dde5','#c0e1e5','#cae5e4','#d3e9e4','#dceee3','#e4f2e2','#eef7e1','#f6fae1','#ffffe0']
-    }
+    type: 'pie'
   }];
 
   const pieLayout = {
